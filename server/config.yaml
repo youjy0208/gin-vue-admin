@@ -9,7 +9,7 @@ zap:
   level: 'info'
   format: 'console'
   prefix: '[GIN-VUE-ADMIN]'
-  director: 'log
+  director: 'log'
   link-name: 'latest_log'
   show-line: true
   encode-level: 'LowercaseColorLevelEncoder'
