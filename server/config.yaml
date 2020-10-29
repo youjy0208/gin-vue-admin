@@ -54,7 +54,7 @@ captcha:
 mysql:
   path: '127.0.0.1:3306'
   config: 'charset=utf8mb4&parseTime=True&loc=Local'
-  db-name: 'qmPlus'
+  db-name: 'gin-vue-admin'
   username: 'root'
   password: '123456'
   max-idle-conns: 10
