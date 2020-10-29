@@ -1,11 +1,13 @@
 package service
 
 import (
+	"encoding/hex"
 	"errors"
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
 	"gin-vue-admin/model/request"
-	"gin-vue-admin/utils"
+	"gitee.com/youjy0208/go-common/mhash"
+	"gitee.com/youjy0208/go-common/mrand"
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
@@ -23,7 +25,8 @@ func Register(u model.SysUser) (err error, userInter model.SysUser) {
 		return errors.New("用户名已注册"), userInter
 	}
 	// 否则 附加uuid 密码md5简单加密 注册
-	u.Password = utils.MD5V([]byte(u.Password))
+	u.Sale = mrand.StringAll(8)
+	u.Password = hex.EncodeToString(mhash.Md5Byte([]byte(u.Password)))
 	u.UUID = uuid.NewV4()
 	err = global.GVA_DB.Create(&u).Error
 	return err, u
@@ -38,9 +41,14 @@ func Register(u model.SysUser) (err error, userInter model.SysUser) {
 
 func Login(u *model.SysUser) (err error, userInter *model.SysUser) {
 	var user model.SysUser
-	u.Password = utils.MD5V([]byte(u.Password))
-	err = global.GVA_DB.Where("username = ? AND password = ?", u.Username, u.Password).Preload("Authority").First(&user).Error
-	return err, &user
+	err = global.GVA_DB.Where("username = ?", u.Username).Preload("Authority").First(&user).Error
+	if err != nil{
+		return err,&user
+	}
+	if user.Password == hex.EncodeToString(mhash.Md5Byte([]byte(user.Sale + u.Password))){
+		return nil,&user
+	}
+	return errors.New("密码错误!"), &user
 }
 
 // @title    ChangePassword
@@ -53,8 +61,14 @@ func Login(u *model.SysUser) (err error, userInter *model.SysUser) {
 
 func ChangePassword(u *model.SysUser, newPassword string) (err error, userInter *model.SysUser) {
 	var user model.SysUser
-	u.Password = utils.MD5V([]byte(u.Password))
-	err = global.GVA_DB.Where("username = ? AND password = ?", u.Username, u.Password).First(&user).Update("password", utils.MD5V([]byte(newPassword))).Error
+	err = global.GVA_DB.Where("username = ?", u.Username).Preload("Authority").First(&user).Error
+	if err != nil{
+		return err,&user
+	}
+	oldPwd := hex.EncodeToString(mhash.Md5Byte([]byte(user.Sale + u.Password)))
+	newPwd := hex.EncodeToString(mhash.Md5Byte([]byte(user.Sale + newPassword)))
+
+	err = global.GVA_DB.Where("username = ? AND password = ?", u.Username, oldPwd).First(&user).Update("password", newPwd).Error
 	return err, u
 }
 

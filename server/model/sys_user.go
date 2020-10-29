@@ -10,8 +10,10 @@ type SysUser struct {
 	UUID        uuid.UUID    `json:"uuid" gorm:"comment:用户UUID"`
 	Username    string       `json:"userName" gorm:"comment:用户登录名"`
 	Password    string       `json:"-"  gorm:"comment:用户登录密码"`
+	Sale        string        `json:"-" gorm:"default:gvapwd01;comment:MD5混淆"`
 	NickName    string       `json:"nickName" gorm:"default:系统用户;comment:用户昵称" `
 	HeaderImg   string       `json:"headerImg" gorm:"default:http://qmplusimg.henrongyi.top/head.png;comment:用户头像"`
+	GroupId     int          `json:"groupId" gorm:"default:0;comment:用户组ID"`
 	Authority   SysAuthority `json:"authority" gorm:"foreignKey:AuthorityId;references:AuthorityId;comment:用户角色"`
 	AuthorityId string       `json:"authorityId" gorm:"default:888;comment:用户角色ID"`
 }
